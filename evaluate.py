@@ -4,6 +4,20 @@ import cv2
 import easyocr
 import numpy as np
 
+import argparse
+
+def parse_option():
+    parser = argparse.ArgumentParser('arguments for predictions')
+    parser.add_argument('--gpu', type=bool, default=True)
+    parser.add_argument('--pth_image', type=str, default="./images/5.jpg")
+    parser.add_argument('--output_plate_name', type=str, default='cropped.jpg')
+    parser.add_argument('--pth_weights', type=str, default='./cfg/model.weights')
+    parser.add_argument('--pth_cfg', type=str, default='./cfg/yolov3-custom.cfg')
+    parser.add_argument('--pth_classes', type=str, default='./cfg/classes.txt')
+
+    opt = parser.parse_args()
+    return opt
+
 
 def cleanup_text(text):
     text.strip()
@@ -81,21 +95,22 @@ class LicensePlateDetector:
 
 
 if __name__ == '__main__':
+    opt = parse_option()
     lpd = LicensePlateDetector(
-        pth_weights='./cfg/model.weights',
-        pth_cfg='./cfg/yolov3-custom.cfg',
-        pth_classes='./cfg/classes.txt'
+        pth_weights=opt.pth_weights,
+        pth_cfg=opt.pth_cfg,
+        pth_classes=opt.pth_classes
     )
 
     # Detect license plate
-    lpd.detect('./Dataset/IRCP_dataset_1024X768/220.jpg')
+    lpd.detect(opt.pth_image)
 
     # Crop plate and show cropped plate
     lpd.crop_plate()
-    cv2.imwrite('cropped.jpg', cv2.cvtColor(lpd.roi_image, cv2.COLOR_BGR2RGB))
-    image = cv2.imread('cropped.jpg')
+    cv2.imwrite(opt.output_plate_name, cv2.cvtColor(lpd.roi_image, cv2.COLOR_BGR2RGB))
+    image = cv2.imread(opt.output_plate_name)
     outputs = []
-    reader = easyocr.Reader(['fa', 'ar'], gpu=True)
+    reader = easyocr.Reader(['fa', 'ar'], gpu=opt.gpu)
     result = reader.readtext(image, detail=1)
     for (bbox, text, prob) in result:
         (tl, tr, br, bl) = bbox
