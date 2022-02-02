@@ -1,10 +1,10 @@
+import argparse
 import math
 
 import cv2
 import easyocr
 import numpy as np
 
-import argparse
 
 def parse_option():
     parser = argparse.ArgumentParser('arguments for predictions')
